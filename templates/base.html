@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>smile | home</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css"/>
+    <link href="{{ url_for('static', filename='smile.css') }}" rel="stylesheet">
+</head>
+
+<body>
+<nav>
+    <div class="container">
+
+
+        <div class="title-links">
+        <img class = "center" src="/static/images/logo.svg" width="200" height="50" alt="Header graphic">
+        </div>
+
+        <div class="sign-login">
+
+             {% if logged_in == True %}
+                 <a href="/logout">Sign Out</a>
+            {% else %}
+                 <a href="/login">Login</a>
+             {% endif %}
+
+         </div>
+
+        <div class="navbar-links">
+            <a href="/">Home</a>
+
+
+            <a href="/sessions">Make Sessions</a>
+
+        </div>
+
+
+    </div>
+</nav>
+
+
+    <main>
+        {% block main %}
+        {% endblock %}
+    </main>
+</div>
+
+
+
+</body>
+
+</html>

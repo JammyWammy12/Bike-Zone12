@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block pageheading %}Welcome{% endblock %}
+
+
+
+{% block main %}
+
+{% if user %}
+    <h1><em>Welcome, {{ user[0] }} {{ user[1] }}!</em></h1>
+
+{% else %}
+    <h1><em>You need to login!</em></h1>
+
+
+{% endif %}
+{% endblock %}
