@@ -79,6 +79,8 @@ def render_sign_page():
 
 @app.route('/login', methods=['POST', 'GET'])
 def render_login_page():
+    if is_logged_in():
+        return redirect('/login?error=please+log+in+first')
 
     if request.method == 'POST':
         email = request.form.get('user_email').lower().strip()
@@ -94,7 +96,7 @@ def render_login_page():
 
             if user_info:
 
-                if user_info[2] == password:
+                if bcrypt.check_password_hash(user_info[2], password):
                     session['user_id'] = user_info[1]
                     session['email'] = user_info[0]
                     print(session)
@@ -110,8 +112,11 @@ def render_login_page():
 
 
 
-@app.route('/sessions', methods=['POST', 'GET'])
-def render_sessions_page():
+@app.route('/post', methods=['POST', 'GET'])
+def render_post_page():
+    if not is_logged_in():
+        return redirect('/login?error=please+log+in+first')
+
     if request.method == 'POST':
         name = request.form.get('name1').title().strip()
         subject = request.form.get('subject').title().strip()
@@ -126,12 +131,12 @@ def render_sessions_page():
             cur.execute(query_insert, (name, date, subject))
             con.commit()
             con.close()
-            return redirect("/sessions")
+            return redirect("/post")
 
 
 
 
-    return render_template('sessions.html', logged_in=is_logged_in())
+    return render_template('post.html', logged_in=True)
 
 @app.route('/logout')
 def logout():
