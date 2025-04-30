@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, session
 import sqlite3
 from sqlite3 import Error
 from flask_bcrypt import Bcrypt
-
+from werkzeug.utils import secure_filename
 app = Flask(__name__)
 app.secret_key = 'super secret key'
 
@@ -62,8 +62,6 @@ def render_sign_page():
 
         hashed_password = bcrypt.generate_password_hash(password)
 
-
-
         con = connect_database(DATABASE)
         if con:
             cur = con.cursor()
@@ -100,9 +98,6 @@ def render_login_page():
                     session['user_id'] = user_info[1]
                     session['email'] = user_info[0]
                     print(session)
-
-
-
                     return redirect("/")
 
         return redirect("/login?error=invalid+credentials")
@@ -118,23 +113,29 @@ def render_post_page():
         return redirect('/login?error=please+log+in+first')
 
     if request.method == 'POST':
-        name = request.form.get('name1').title().strip()
-        subject = request.form.get('subject').title().strip()
-        date = request.form.get('date').title().strip()
+        title = request.form.get('title').strip()
+        description = request.form.get('description').strip()
+        image = request.files.get('image')
 
+
+        # Process image
+        if image and image.filename:
+            # Create unique filename
+            filename = secure_filename(image.filename)
+            # Store image title in database
+            image_path = f"images/{filename}"
 
 
         con = connect_database(DATABASE)
         if con:
             cur = con.cursor()
-            query_insert = "INSERT INTO sessions (name, date, subject) VALUES (?, ?, ?)"
-            cur.execute(query_insert, (name, date, subject))
+            cur.execute(
+                "INSERT INTO sessions (title, description, image) VALUES (?, ?, ?)",
+                (title, description, image_path,)
+            )
             con.commit()
             con.close()
             return redirect("/post")
-
-
-
 
     return render_template('post.html', logged_in=True)
 
