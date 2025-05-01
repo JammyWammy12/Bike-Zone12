@@ -120,22 +120,27 @@ def render_post_page():
 
         # Process image
         if image and image.filename:
-            # Create unique filename
-            filename = secure_filename(image.filename)
-            # Store image title in database
-            image_path = f"images/{filename}"
+            try:
+                # Create unique filename
+                filename = secure_filename(image.filename)
+                # Store image title in database
+                image_path = f"images/{filename}"
 
 
-        con = connect_database(DATABASE)
-        if con:
-            cur = con.cursor()
-            cur.execute(
-                "INSERT INTO sessions (title, description, image) VALUES (?, ?, ?)",
-                (title, description, image_path,)
-            )
-            con.commit()
-            con.close()
-            return redirect("/post")
+                con = connect_database(DATABASE)
+                if con:
+                    cur = con.cursor()
+                    cur.execute(
+                        "INSERT INTO sessions (title, description, image) VALUES (?, ?, ?)",
+                        (title, description, image_path,)
+                    )
+                    con.commit()
+                    con.close()
+                    return redirect("/post")
+            except Error as e:
+                print(f"Error uploading file: {e}")
+                return redirect("/post?error=upload+failed")
+
 
     return render_template('post.html', logged_in=True)
 
