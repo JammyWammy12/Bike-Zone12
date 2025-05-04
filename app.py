@@ -3,12 +3,15 @@ import sqlite3
 from sqlite3 import Error
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
+import os
 app = Flask(__name__)
 app.secret_key = 'super secret key'
 
 DATABASE = 'project1'
 bcrypt = Bcrypt(app)
+UPLOAD_FOLDER = 'static/images'
 
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 def is_logged_in():
     if (session.get('user_id') is None):
@@ -105,6 +108,28 @@ def render_login_page():
     return render_template('login.html', logged_in=is_logged_in())
 
 
+@app.route('/show_post', methods=['POST', 'GET'])
+def render_show_post_page():
+    if not is_logged_in():
+        return redirect('/login?error=please+log+in+first')
+
+    try:
+        con = connect_database(DATABASE)
+        query = "SELECT * FROM sessions"  # Select all columns
+        cur = con.cursor()
+        cur.execute(query)
+        posts = cur.fetchall()  # Get all rows
+        con.close()
+        print(posts)
+
+
+    except Exception as e:
+        # Handle any database errors
+        return f"An error occurred: {e}", 500
+
+    return render_template('show_post.html', logged_in=True, posts=posts)
+
+
 
 
 @app.route('/post', methods=['POST', 'GET'])
@@ -123,6 +148,12 @@ def render_post_page():
             try:
                 # Create unique filename
                 filename = secure_filename(image.filename)
+
+                upload_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
+                # Save file
+                image.save(upload_path)
+
                 # Store image title in database
                 image_path = f"images/{filename}"
 
