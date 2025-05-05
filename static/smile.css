@@ -5,10 +5,17 @@
         box-sizing: border-box;
     }
 
+    .logo {
+      position: fixed;
+      top: 5px;
+      left: 20px;
+
+    }
+
 
     body {
-
-      background-color: #ffffff;
+      background-image: url("static/images/background1.png");
+      background-color: #a8a5a5;
 
     }
 
@@ -48,7 +55,7 @@
 
     nav {
 
-        background-color: rgba(70, 130, 180, 1.0); /* darkest blue */
+        background-color: #100f0f; /* darkest blue */
         text-align: center;
         /*color: rgba(52, 152, 219, 1.0);!*light blue*!*/
         font-size: 1.5rem;
@@ -95,7 +102,7 @@
     }
 
     a, a:visited {
-        color: blue;
+        color: #00a651;
 
         /*color:hotpink;*/
         text-decoration: none;
