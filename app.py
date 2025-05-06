@@ -25,6 +25,7 @@ def is_logged_in():
 def connect_database(db_file):
     try:
         con = sqlite3.connect(db_file)
+
         print("Database connected successfully")
         return con
     except Error as e:
@@ -87,6 +88,7 @@ def render_login_page():
         email = request.form.get('user_email').lower().strip()
         password = request.form.get('user_password')
 
+
         con = connect_database(DATABASE)
         if con:
             cur = con.cursor()
@@ -115,7 +117,7 @@ def render_show_post_page():
 
     try:
         con = connect_database(DATABASE)
-        query = "SELECT * FROM sessions"  # Select all columns
+        query = "SELECT post.title, post.image, post.description, post.session_id, post.name FROM post JOIN user ON post.session_id = user.user_id"
         cur = con.cursor()
         cur.execute(query)
         posts = cur.fetchall()  # Get all rows
@@ -142,6 +144,11 @@ def render_post_page():
         description = request.form.get('description').strip()
         image = request.files.get('image')
 
+        session_id = session.get('user_id')
+        name = session.get('name')
+
+
+
 
         # Process image
         if image and image.filename:
@@ -155,15 +162,15 @@ def render_post_page():
                 image.save(upload_path)
 
                 # Store image title in database
-                image_path = f"images/{filename}"
+                image_path = f"{filename}"
 
 
                 con = connect_database(DATABASE)
                 if con:
                     cur = con.cursor()
                     cur.execute(
-                        "INSERT INTO sessions (title, description, image) VALUES (?, ?, ?)",
-                        (title, description, image_path,)
+                        "INSERT INTO post (title, description, image, session_id, name) VALUES (?, ?, ?, ?,?)",
+                        (title, description, image_path, session_id, name)
                     )
                     con.commit()
                     con.close()
@@ -179,5 +186,3 @@ def render_post_page():
 def logout():
     session.clear()
     return redirect('/login?message=logged+out')
-
-
