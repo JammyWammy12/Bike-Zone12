@@ -58,24 +58,36 @@ def render_sign_page():
         password2 = request.form.get('user_password2')
         user_class = request.form.get('user_role')  # Retrieve selected role
 
-        if password != password2:
-            return redirect("/sign?error=passwords+do+not+match")
+        if password != password2: # Check if passwords match
+            error_message = "Passwords don't match!" # Display Error
+            return render_template("sign.html", error_message=error_message)
 
         if len(password) < 8:
-            return redirect("/sign?error=password+must+be+8+long")
+            error_message = "Password must be at least 8 characters"
+            return render_template("sign.html", error_message=error_message)
 
         hashed_password = bcrypt.generate_password_hash(password)
 
         con = connect_database(DATABASE)
         if con:
             cur = con.cursor()
-            query_insert = "INSERT INTO user (first_name, last_name, email, password, class) VALUES (?, ?, ?, ?, ?)"
-            cur.execute(query_insert, (fname, lname, email, hashed_password,user_class))
+            cur.execute("SELECT * FROM user WHERE email = ?", (email,))
+            existing_user = cur.fetchone()
+
+            if existing_user:
+                error_message = "Email already exists"
+                return render_template("sign.html", error_message=error_message)
+
+            if con:
+                cur = con.cursor()
+                query_insert = "INSERT INTO user (first_name, last_name, email, password, class) VALUES (?, ?, ?, ?, ?)"
+                cur.execute(query_insert, (fname, lname, email, hashed_password, user_class))
+
             con.commit()
             con.close()
             return redirect("/login")  # Redirect to login page after signing up
 
-    return render_template('sign.html')
+    return render_template("sign.html")
 
 
 
@@ -88,7 +100,6 @@ def render_login_page():
         email = request.form.get('user_email').lower().strip()
         password = request.form.get('user_password')
 
-
         con = connect_database(DATABASE)
         if con:
             cur = con.cursor()
@@ -96,9 +107,7 @@ def render_login_page():
             cur.execute(query, (email,))
             user_info = cur.fetchone()
             con.close()
-
             if user_info:
-
                 if bcrypt.check_password_hash(user_info[2], password):
                     session['user_id'] = user_info[1]
                     session['email'] = user_info[0]
@@ -117,7 +126,7 @@ def render_show_post_page():
 
     try:
         con = connect_database(DATABASE)
-        query = "SELECT post.title, post.image, post.description, post.session_id, post.name FROM post JOIN user ON post.session_id = user.user_id"
+        query = "SELECT post.title, post.image, post.description, post.session_id, user.first_name FROM post JOIN user ON post.session_id = user.user_id"
         cur = con.cursor()
         cur.execute(query)
         posts = cur.fetchall()  # Get all rows
@@ -126,13 +135,12 @@ def render_show_post_page():
 
 
     except Exception as e:
-        # Handle any database errors
-        return f"An error occurred: {e}", 500
+        return f"An error occurred: {e}", 500 # Handle any database errors
 
     return render_template('show_post.html', logged_in=True, posts=posts)
 
 
-
+# Check if the extension is in our allowed list
 
 @app.route('/post', methods=['POST', 'GET'])
 def render_post_page():
@@ -145,31 +153,19 @@ def render_post_page():
         image = request.files.get('image')
 
         session_id = session.get('user_id')
-        name = session.get('name')
-
-
-
-
+        name = session.get('first_name')
         # Process image
         if image and image.filename:
             try:
-                # Create unique filename
-                filename = secure_filename(image.filename)
-
+                filename = secure_filename(image.filename) # Create unique filename
                 upload_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-
-                # Save file
-                image.save(upload_path)
-
-                # Store image title in database
-                image_path = f"{filename}"
-
-
+                image.save(upload_path) # Save file
+                image_path = f"{filename}"# Store image title in database
                 con = connect_database(DATABASE)
                 if con:
                     cur = con.cursor()
                     cur.execute(
-                        "INSERT INTO post (title, description, image, session_id, name) VALUES (?, ?, ?, ?,?)",
+                        "INSERT INTO post (title, description, image, session_id, name) VALUES (?, ?, ?, ?, ?)",
                         (title, description, image_path, session_id, name)
                     )
                     con.commit()
