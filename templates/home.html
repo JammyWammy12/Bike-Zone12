@@ -2,16 +2,16 @@
 
 {% block pageheading %}Welcome{% endblock %}
 
-
-
 {% block main %}
+<background>
+     {% if user %}
+        <h1><em>Welcome, {{ user[0] }} {{ user[1] }}!</em></h1>
+    {% else %}
+        <h1><em>You need to login!</em></h1>
+    {% endif %}
 
-{% if user %}
-    <h1><em>Welcome, {{ user[0] }} {{ user[1] }}!</em></h1>
-
-{% else %}
-    <h1><em>You need to login!</em></h1>
+</background>
 
 
-{% endif %}
+
 {% endblock %}

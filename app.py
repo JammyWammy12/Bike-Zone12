@@ -119,6 +119,9 @@ def render_login_page():
     return render_template('login.html', logged_in=is_logged_in())
 
 
+
+
+
 @app.route('/show_post', methods=['POST', 'GET'])
 def render_show_post_page():
     if not is_logged_in():
@@ -126,8 +129,8 @@ def render_show_post_page():
 
     try:
         con = connect_database(DATABASE)
-        query = "SELECT post.title, post.image, post.description, post.session_id, user.first_name FROM post JOIN user ON post.session_id = user.user_id"
         cur = con.cursor()
+        query = "SELECT post.title, post.image, post.description, post.session_id, user.first_name FROM post JOIN user ON post.session_id = user.user_id"
         cur.execute(query)
         posts = cur.fetchall()  # Get all rows
         con.close()
@@ -177,6 +180,57 @@ def render_post_page():
 
 
     return render_template('post.html', logged_in=True)
+
+@app.route('/single_post', methods=['POST', 'GET'])
+def render_single_post_page():
+    if not is_logged_in():
+        return redirect('/login?error=please+log+in+first')
+
+    try:
+        user_id = session.get('user_id')
+        con = connect_database(DATABASE)
+        cur = con.cursor()
+        query = "SELECT post.title, post.image, post.description, post.session_id, user.first_name FROM post JOIN user ON post.session_id = user.user_id WHERE post.session_id = ?"
+        cur.execute(query, (user_id,))
+        posts = cur.fetchall()  # Get all rows
+        con.close()
+        print(posts)
+
+
+        if posts:
+            return render_template("single_post.html", logged_in=True, posts=posts)
+
+        else:
+            return
+            redirect('/show_post?error=post+not+found')
+
+
+    except Error as e:
+        print(f"Error uploading file: {e}")
+        return redirect("/post?error=upload+failed")
+
+
+
+
+
+
+
+
+    except Exception as e:
+        return f"An error occurred: {e}", 500 # Handle any database errors
+
+    return render_template('single_post.html', logged_in=True, posts=posts)
+
+
+
+
+
+
+
+
+
+
+
 
 @app.route('/logout')
 def logout():
