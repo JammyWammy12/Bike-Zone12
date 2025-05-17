@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Your Posts</title>
+</head>
+<body>
+    <h1>Your Posts</h1>
+
+    {% if message %}
+        <p>{{ message }}</p>
+    {% else %}
+        {% for post_id in posts_id %}
+            <div>
+                <h2>{{ post_id[0] }}</h2> <!-- Title -->
+                <p><strong>Posted by:</strong> {{ post_id[3] }}</p> <!-- First Name -->
+                <p>{{ post_id[2] }}</p> <!-- Description -->
+                {% if post_id[1] %}
+                    <img src="{{ url_for('static', filename='images/' + post[1]) }}" alt="Post image" width="300">
+                {% endif %}
+                <hr>
+            </div>
+        {% endfor %}
+    {% endif %}
+</body>
+</html>

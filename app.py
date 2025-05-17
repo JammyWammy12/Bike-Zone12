@@ -181,52 +181,33 @@ def render_post_page():
 
     return render_template('post.html', logged_in=True)
 
-@app.route('/single_post', methods=['POST', 'GET'])
-def render_single_post_page():
+@app.route('/single_post/<cat_id>', methods=['GET'])
+def render_single_post_page(cat_id):
+
     if not is_logged_in():
         return redirect('/login?error=please+log+in+first')
 
     try:
-        user_id = session.get('user_id')
+
+
         con = connect_database(DATABASE)
-        cur = con.cursor()
-        query = "SELECT post.title, post.image, post.description, post.session_id, user.first_name FROM post JOIN user ON post.session_id = user.user_id WHERE post.session_id = ?"
-        cur.execute(query, (user_id,))
-        posts = cur.fetchall()  # Get all rows
-        con.close()
-        print(posts)
+        if con:
+            cur = con.cursor()
+            query = "SELECT title, image, name, post_id FROM post WHERE post_id = ? "
+            cur.execute(query, (cat_id,))
+            post_id = cur.fetchone()
+            con.close()
 
+            if not post_id:
+                return render_template("single_post.html", logged_in=True, message="You haven't created any posts yet.")
 
-        if posts:
-            return render_template("single_post.html", logged_in=True, posts=posts)
-
-        else:
-            return
-            redirect('/show_post?error=post+not+found')
-
+            return render_template("single_post.html", logged_in=True, post_id=post_id)
 
     except Error as e:
-        print(f"Error uploading file: {e}")
-        return redirect("/post?error=upload+failed")
-
-
-
-
-
-
-
-
+        print(f"Database error: {e}")
+        return "Database error", 500
     except Exception as e:
-        return f"An error occurred: {e}", 500 # Handle any database errors
-
-    return render_template('single_post.html', logged_in=True, posts=posts)
-
-
-
-
-
-
-
+        return f"An unexpected error occurred: {e}", 500
 
 
 

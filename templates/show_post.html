@@ -7,11 +7,12 @@
         {% if posts %}
             {% for post in posts %}
                 <div class="product-box">
-                    <h2>{{ post[0] }}</h2>
-                    <img src="static/images/{{ post[1] }}" alt="{{ post[0] }}">
-                    <p class="description">{{ post[2] }}</p>
-                    <p class="description">{{ post[3] }}</p>
-
+                    <h2>{{ post[0] }}</h2>  <!-- title -->
+                    <p>Posted by: {{ post[4] }}</p>  <!-- first_name -->
+                    <a href="/single_post/{{ post[3] }}">  <!-- post_id -->
+                        <img src="static/images/{{ post[1] }}" alt="{{ post[0] }}">  <!-- image -->
+                    </a>
+                    <p class="description">{{ post[2] }}</p>  <!-- description -->
                 </div>
             {% endfor %}
         {% else %}

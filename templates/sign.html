@@ -3,6 +3,14 @@
 {% block pageheading %}Sign Up{% endblock %}
 
 {% block main %}
+
+    {% if error_message %}
+        <div class="error-box">
+            <p style="color: #ffffff; font-weight: bold;">{{ error_message }}</p>
+        </div>
+
+    {% endif %}
+
     <form class = "myform" method="post">
         <div class = "form-group">
             <div class = "form-element"> First Name: </div>
@@ -21,14 +29,17 @@
 
         <div class = "form-group">
             <div class = "form-element"> Password: </div>
-            <div class = "form-element"> <input type = "password" name="user_password" required> </div>
+            <div class = "form-element"> <input type = "password" name="user_password"> </div>
         </div>
 
 
         <div class = "form-group">
             <div class = "form-element"> Password2: </div>
-            <div class = "form-element"> <input type = "password" name="user_password2" required> </div>
+            <div class = "form-element"> <input type = "password" name="user_password2"> </div>
         </div>
+
+
+
 
 
 
