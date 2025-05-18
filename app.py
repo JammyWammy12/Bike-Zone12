@@ -181,33 +181,26 @@ def render_post_page():
 
     return render_template('post.html', logged_in=True)
 
-@app.route('/single_post/<cat_id>', methods=['GET'])
-def render_single_post_page(cat_id):
 
-    if not is_logged_in():
-        return redirect('/login?error=please+log+in+first')
+@app.route('/comment', methods=['POST'])
+def render_comment_page():
 
-    try:
+    if request.method == 'POST':
+        context =request.form.get('context')
 
 
         con = connect_database(DATABASE)
         if con:
             cur = con.cursor()
-            query = "SELECT title, image, name, post_id FROM post WHERE post_id = ? "
-            cur.execute(query, (cat_id,))
-            post_id = cur.fetchone()
+            query = "INSERT INTO comments (context) VALUES (?)"
+            cur.execute(query, (context,))
+
             con.close()
 
-            if not post_id:
-                return render_template("single_post.html", logged_in=True, message="You haven't created any posts yet.")
 
-            return render_template("single_post.html", logged_in=True, post_id=post_id)
+        return redirect("/login?error=invalid+credentials")
 
-    except Error as e:
-        print(f"Database error: {e}")
-        return "Database error", 500
-    except Exception as e:
-        return f"An unexpected error occurred: {e}", 500
+    return render_template('login.html', logged_in=is_logged_in())
 
 
 
