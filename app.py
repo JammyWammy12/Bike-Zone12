@@ -5,14 +5,16 @@ from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
 import os
 app = Flask(__name__)
-app.secret_key = 'super secret key'
+app.secret_key = 'super secret key' # Used for encryption
 
 DATABASE = 'project1'
-bcrypt = Bcrypt(app)
-UPLOAD_FOLDER = 'static/images'
+bcrypt = Bcrypt(app) # Used to hash and check passwords
+UPLOAD_FOLDER = 'static/images' #Uploading images file path
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+
+# Check if a user is logged in
 def is_logged_in():
     if (session.get('user_id') is None):
         print("Not logged in!")
@@ -22,6 +24,7 @@ def is_logged_in():
         return True
 
 
+# Creates a connection to the SQLite database
 def connect_database(db_file):
     try:
         con = sqlite3.connect(db_file)
@@ -34,7 +37,9 @@ def connect_database(db_file):
 @app.route('/')
 def render_homepage():
     user = None
+    # If user is logged in, get their first and last name for display in home page
     if 'user_id' in session:
+
         con = connect_database(DATABASE)
         if con:
             cur = con.cursor()
@@ -48,9 +53,11 @@ def render_homepage():
     return render_template('home.html', user=user, logged_in=is_logged_in())
 
 
+# Signup route for new users
 @app.route('/sign', methods=['POST', 'GET'])
 def render_sign_page():
     if request.method == 'POST':
+        # Get the form data and format it
         fname = request.form.get('user_fname').title().strip()
         lname = request.form.get('user_lname').title().strip()
         email = request.form.get('user_email').lower().strip()
@@ -58,24 +65,37 @@ def render_sign_page():
         password2 = request.form.get('user_password2')
         user_class = request.form.get('user_role')  # Retrieve selected role
 
-        if password != password2: # Check if passwords match
-            error_message = "Passwords don't match!" # Display Error
+        # Check password match and length
+        if password != password2:
+            error_message = "Passwords don't match!"
             return render_template("sign.html", error_message=error_message)
 
         if len(password) < 8:
             error_message = "Password must be at least 8 characters"
             return render_template("sign.html", error_message=error_message)
 
+        #Securely hashes a plain text password, making it safe to store in a database.
         hashed_password = bcrypt.generate_password_hash(password)
 
+        # Try to connect to the database
         con = connect_database(DATABASE)
+
+        # If the connection is successful
         if con:
+            # Create a cursor object to interact with the database
             cur = con.cursor()
+            # Check if email already exists
+
+            # Check if the email already exists in the database by searching the user table
             cur.execute("SELECT * FROM user WHERE email = ?", (email,))
+
+            # Get the first row that matches the email
             existing_user = cur.fetchone()
 
             if existing_user:
+                # Display error of email inused
                 error_message = "Email already exists"
+                # Render the sign up page again, passing the error message to the template to be displayed
                 return render_template("sign.html", error_message=error_message)
 
             if con:
@@ -157,12 +177,17 @@ def render_post_page():
 
         session_id = session.get('user_id')
         name = session.get('first_name')
-        # Process image
+
+        # Process image if one was uploaded
         if image and image.filename:
             try:
+                # Secure the filename and prepare upload path
                 filename = secure_filename(image.filename) # Create unique filename
                 upload_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                image.save(upload_path) # Save file
+
+
+                # Save file
+                image.save(upload_path)
                 image_path = f"{filename}"# Store image title in database
                 con = connect_database(DATABASE)
                 if con:
@@ -181,32 +206,24 @@ def render_post_page():
 
     return render_template('post.html', logged_in=True)
 
-
-@app.route('/comment', methods=['POST'])
-def render_comment_page():
-
-    if request.method == 'POST':
-        context =request.form.get('context')
-
-
-        con = connect_database(DATABASE)
-        if con:
-            cur = con.cursor()
-            query = "INSERT INTO comments (context) VALUES (?)"
-            cur.execute(query, (context,))
-
-            con.close()
-
-
-        return redirect("/login?error=invalid+credentials")
-
-    return render_template('login.html', logged_in=is_logged_in())
-
-
-
-
-
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect('/login?message=logged+out')
+
+
+@app.route('/delete_post', methods=['POST'])
+def delete_post():
+    if not is_logged_in():
+        return redirect('/login?error=please+log+in+first')
+
+    title = request.form.get('title')
+    image = request.form.get('image')
+    user_id = session.get('user_id')
+
+    try:
+        con = connect_database(DATABASE)
+        cur = con.cursor()
+
+        cur.execute("SELECT * FROM post WHERE title = ? AND session_id = ?", (title, user_id))
+        post = cur.fetchone()

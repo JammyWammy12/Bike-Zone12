@@ -3,7 +3,7 @@
 {% block pageheading %}Sign Up{% endblock %}
 
 {% block main %}
-
+<!-- Error message container that display when an error occurs-->
     {% if error_message %}
         <div class="error-box">
             <p style="color: #ffffff; font-weight: bold;">{{ error_message }}</p>
@@ -11,6 +11,7 @@
 
     {% endif %}
 
+    <!-- Main signup form, where it will POST data to server -->
     <form class = "myform" method="post">
         <div class = "form-group">
             <div class = "form-element"> First Name: </div>

@@ -4,6 +4,10 @@
 
 {% block main %}
 
+
+
+
+
     <div class="products">
         {% if posts %}
             {% for post in posts %}
@@ -11,13 +15,16 @@
                     <h2>{{ post[0] }}</h2>
                     <p>Posted by: {{ post[4] }}</p>
                     <img src="static/images/{{ post[1] }}" alt="{{ post[0] }}">
+
+
                     <div class="description-scroll">
-                        <p>{{ post[2] }}</p>
+                        <p class="description">{{ post[2] }}</p>
                     </div>
 
 
-                    {% include "comment.html" %}
+
                 </div>
+
             {% endfor %}
         {% else %}
             <p>No posts available.</p>

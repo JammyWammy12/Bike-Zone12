@@ -4,9 +4,13 @@
 
 {% block main %}
 <background>
+    <!-- Checks if a user is logged in -->
      {% if user %}
-        <h1><em>Welcome, {{ user[0] }} {{ user[1] }}!</em></h1>
+    <!-- Displays welcome message with user's first and last name -->
+    <h1>Welcome, {{ user[0] }} {{ user[1] }}!</h1>
+     <!-- If no user is logged in -->
     {% else %}
+    <!-- Shows login prompt -->
         <h1><em>You need to login!</em></h1>
     {% endif %}
 
