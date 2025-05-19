@@ -61,6 +61,7 @@ def render_sign_page():
         fname = request.form.get('user_fname').title().strip()
         lname = request.form.get('user_lname').title().strip()
         email = request.form.get('user_email').lower().strip()
+        username = request.form.get('user_username').lower().strip()
         password = request.form.get('user_password')
         password2 = request.form.get('user_password2')
         user_class = request.form.get('user_role')  # Retrieve selected role
@@ -100,8 +101,8 @@ def render_sign_page():
 
             if con:
                 cur = con.cursor()
-                query_insert = "INSERT INTO user (first_name, last_name, email, password, class) VALUES (?, ?, ?, ?, ?)"
-                cur.execute(query_insert, (fname, lname, email, hashed_password, user_class))
+                query_insert = "INSERT INTO user (username, email, password, class) VALUES (?, ?, ?, ?, ?)"
+                cur.execute(query_insert, (username, email, hashed_password, user_class))
 
             con.commit()
             con.close()
@@ -225,5 +226,28 @@ def delete_post():
         con = connect_database(DATABASE)
         cur = con.cursor()
 
-        cur.execute("SELECT * FROM post WHERE title = ? AND session_id = ?", (title, user_id))
+        query = "SELECT * FROM post WHERE title = ? AND session_id = ?"
+        cur.execute(query, (title, user_id))
+
         post = cur.fetchone()
+
+        if post:
+            # Delete from database
+            query = "DELETE FROM post WHERE title = ? AND session_id = ?"
+            cur.execute(query, (title, user_id))
+
+
+            con.commit()
+            con.close()
+
+        return redirect('/show_post')
+    except Exception as e:
+        return f"An error occurred while deleting: {e}", 500
+
+
+
+
+
+
+
+

@@ -21,7 +21,12 @@
                         <p class="description">{{ post[2] }}</p>
                     </div>
 
-
+                    {% if session['user_id'] == post[3] %}
+                    <form action="/delete_post" method="POST">
+                        <input type="hidden" name="title" value="{{ post[0] }}">
+                        <button type="submit" class="delete-btn">Delete</button>
+                    </form>
+                {% endif %}
 
                 </div>
 
