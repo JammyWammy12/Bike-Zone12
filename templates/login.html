@@ -3,6 +3,13 @@
 {% block pageheading %}Login{% endblock %}
 
 {% block main %}
+
+{% if error_message %}
+        <div class="error-box">
+            <p style="color: #ffffff; font-weight: bold;">{{ error_message }}</p>
+        </div>
+
+    {% endif %}
     <div class="">
         <form class = "myform" method="post">
         <div class = "form-group">

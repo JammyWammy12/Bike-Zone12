@@ -4,12 +4,13 @@ from sqlite3 import Error
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
 import os
+
 app = Flask(__name__)
-app.secret_key = 'super secret key' # Used for encryption
+app.secret_key = 'super secret key'  # Used for encryption
 
 DATABASE = 'project1'
-bcrypt = Bcrypt(app) # Used to hash and check passwords
-UPLOAD_FOLDER = 'static/images' #Uploading images file path
+bcrypt = Bcrypt(app)  # Used to hash and check passwords
+UPLOAD_FOLDER = 'static/images'  # Uploading images file path
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -34,6 +35,7 @@ def connect_database(db_file):
     except Error as e:
         print(f"Database connection error: {e}")
 
+
 @app.route('/')
 def render_homepage():
     user = None
@@ -43,12 +45,12 @@ def render_homepage():
         con = connect_database(DATABASE)
         if con:
             cur = con.cursor()
-            query = "SELECT first_name, last_name FROM user WHERE user_id = ?"
+            query = "SELECT username FROM user WHERE user_id = ?"
             cur.execute(query, (session['user_id'],))
             user = cur.fetchone()
             con.close()
 
-             # Extract first_name from tuple
+            # Extract first_name from tuple
 
     return render_template('home.html', user=user, logged_in=is_logged_in())
 
@@ -58,13 +60,11 @@ def render_homepage():
 def render_sign_page():
     if request.method == 'POST':
         # Get the form data and format it
-        fname = request.form.get('user_fname').title().strip()
-        lname = request.form.get('user_lname').title().strip()
+
         email = request.form.get('user_email').lower().strip()
-        username = request.form.get('user_username').lower().strip()
+        username = request.form.get('username').title().strip()
         password = request.form.get('user_password')
         password2 = request.form.get('user_password2')
-        user_class = request.form.get('user_role')  # Retrieve selected role
 
         # Check password match and length
         if password != password2:
@@ -75,7 +75,7 @@ def render_sign_page():
             error_message = "Password must be at least 8 characters"
             return render_template("sign.html", error_message=error_message)
 
-        #Securely hashes a plain text password, making it safe to store in a database.
+        # Securely hashes a plain text password, making it safe to store in a database.
         hashed_password = bcrypt.generate_password_hash(password)
 
         # Try to connect to the database
@@ -91,18 +91,25 @@ def render_sign_page():
             cur.execute("SELECT * FROM user WHERE email = ?", (email,))
 
             # Get the first row that matches the email
-            existing_user = cur.fetchone()
+            existing_email = cur.fetchone()
 
-            if existing_user:
+            if existing_email:
                 # Display error of email inused
                 error_message = "Email already exists"
                 # Render the sign up page again, passing the error message to the template to be displayed
                 return render_template("sign.html", error_message=error_message)
 
+            cur.execute("SELECT * FROM user WHERE username = ?", (username,))
+            existing_username = cur.fetchone()
+
+            if existing_username:
+                error_message = "Username already taken"
+                return render_template("sign.html", error_message=error_message)
+
             if con:
                 cur = con.cursor()
-                query_insert = "INSERT INTO user (username, email, password, class) VALUES (?, ?, ?, ?, ?)"
-                cur.execute(query_insert, (username, email, hashed_password, user_class))
+                query_insert = "INSERT INTO user (username, email, password) VALUES (?, ?, ?)"
+                cur.execute(query_insert, (username, email, hashed_password))
 
             con.commit()
             con.close()
@@ -111,9 +118,10 @@ def render_sign_page():
     return render_template("sign.html")
 
 
-
 @app.route('/login', methods=['POST', 'GET'])
 def render_login_page():
+    error_message = request.args.get('error')
+
     if is_logged_in():
         return redirect('/login?error=please+log+in+first')
 
@@ -128,17 +136,14 @@ def render_login_page():
             cur.execute(query, (email,))
             user_info = cur.fetchone()
             con.close()
-            if user_info:
-                if bcrypt.check_password_hash(user_info[2], password):
-                    session['user_id'] = user_info[1]
-                    session['email'] = user_info[0]
-                    print(session)
-                    return redirect("/")
+            if user_info and bcrypt.check_password_hash(user_info[2], password):
+                session['user_id'] = user_info[1]
+                session['email'] = user_info[0]
+                return redirect("/")
+            else:
+                error_message = "Incorrect email or password"
 
-        return redirect("/login?error=invalid+credentials")
-
-    return render_template('login.html', logged_in=is_logged_in())
-
+    return render_template("login.html", logged_in=is_logged_in(), error_message=error_message)
 
 
 
@@ -148,10 +153,12 @@ def render_show_post_page():
     if not is_logged_in():
         return redirect('/login?error=please+log+in+first')
 
+
+
     try:
         con = connect_database(DATABASE)
         cur = con.cursor()
-        query = "SELECT post.title, post.image, post.description, post.session_id, user.first_name FROM post JOIN user ON post.session_id = user.user_id"
+        query = "SELECT post.title, post.image, post.description, post.session_id, user.username FROM post JOIN user ON post.session_id = user.user_id"
         cur.execute(query)
         posts = cur.fetchall()  # Get all rows
         con.close()
@@ -159,7 +166,7 @@ def render_show_post_page():
 
 
     except Exception as e:
-        return f"An error occurred: {e}", 500 # Handle any database errors
+        return f"An error occurred: {e}", 500  # Handle any database errors
 
     return render_template('show_post.html', logged_in=True, posts=posts)
 
@@ -183,13 +190,12 @@ def render_post_page():
         if image and image.filename:
             try:
                 # Secure the filename and prepare upload path
-                filename = secure_filename(image.filename) # Create unique filename
+                filename = secure_filename(image.filename)  # Create unique filename
                 upload_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-
 
                 # Save file
                 image.save(upload_path)
-                image_path = f"{filename}"# Store image title in database
+                image_path = f"{filename}"  # Store image title in database
                 con = connect_database(DATABASE)
                 if con:
                     cur = con.cursor()
@@ -204,8 +210,8 @@ def render_post_page():
                 print(f"Error uploading file: {e}")
                 return redirect("/post?error=upload+failed")
 
-
     return render_template('post.html', logged_in=True)
+
 
 @app.route('/logout')
 def logout():
@@ -236,18 +242,9 @@ def delete_post():
             query = "DELETE FROM post WHERE title = ? AND session_id = ?"
             cur.execute(query, (title, user_id))
 
-
             con.commit()
             con.close()
 
         return redirect('/show_post')
     except Exception as e:
         return f"An error occurred while deleting: {e}", 500
-
-
-
-
-
-
-
-
