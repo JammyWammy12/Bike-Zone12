@@ -1,8 +1,14 @@
 {% extends "base.html" %}
 
-{% block pageheading %}Login{% endblock %}
 
 {% block main %}
+
+<html>
+    <body>
+        <h1>{% block pageheading %}Login Page{% endblock %}</h1>
+    </body>
+
+</html>
 
 {% if error_message %}
         <div class="error-box">

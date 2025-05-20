@@ -24,7 +24,9 @@
         <div class="sign-login">
 
              {% if logged_in == True %}
+                <a href="/change_user">Settings</a>
                  <a href="/logout">Sign Out</a>
+
             {% else %}
                  <a href="/login">Login</a>
              {% endif %}
@@ -38,6 +40,10 @@
             <a href="/post">Make Post</a>
 
             <a href="/show_post">Post</a>
+
+
+
+
 
         </div>
 

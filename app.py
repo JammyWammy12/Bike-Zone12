@@ -94,9 +94,9 @@ def render_sign_page():
             existing_email = cur.fetchone()
 
             if existing_email:
-                # Display error of email inused
+                # Display error of email in used
                 error_message = "Email already exists"
-                # Render the sign up page again, passing the error message to the template to be displayed
+                # Render the sign-up page again, passing the error message to the template to be displayed
                 return render_template("sign.html", error_message=error_message)
 
             cur.execute("SELECT * FROM user WHERE username = ?", (username,))
@@ -146,14 +146,10 @@ def render_login_page():
     return render_template("login.html", logged_in=is_logged_in(), error_message=error_message)
 
 
-
-
 @app.route('/show_post', methods=['POST', 'GET'])
 def render_show_post_page():
     if not is_logged_in():
         return redirect('/login?error=please+log+in+first')
-
-
 
     try:
         con = connect_database(DATABASE)
@@ -162,8 +158,6 @@ def render_show_post_page():
         cur.execute(query)
         posts = cur.fetchall()  # Get all rows
         con.close()
-
-
 
     except Exception as e:
         return f"An error occurred: {e}", 500  # Handle any database errors
@@ -206,7 +200,7 @@ def render_post_page():
                     )
                     con.commit()
                     con.close()
-                    
+
                     return redirect("/post")
             except Error as e:
                 print(f"Error uploading file: {e}")
@@ -258,10 +252,67 @@ def render_search_page():
     search_title = "Search for: '" + look_up + "' "
     look_up = "%" + look_up + "%"
 
-    query = "SELECT post.title, post.image, post.description, post.name, post.rating FROM post WHERE post.name LIKE ?"
+    query = "SELECT post.title, post.image, post.description, post.session_id, user.username, post.rating FROM post JOIN user ON post.session_id = user.user_id WHERE user.username LIKE ?"
     con = connect_database(DATABASE)
     cursor = con.cursor()
     cursor.execute(query, (look_up,))
     data_list = cursor.fetchall()
     con.close()
-    return render_template('search_post', posts=data_list, search_title=search_title, logged_in=True)
+    return render_template('show_post.html', posts=data_list, search_title=search_title, logged_in=True)
+
+
+@app.route('/change_user', methods=['GET', 'POST'])
+def change_user():
+    if not is_logged_in():
+        return redirect('/login?error=please+log+in+first')
+
+    user_id = session.get('user_id')
+    if request.method == 'POST':
+        email = request.form.get('user_email').lower().strip()
+        username = request.form.get('username').title().strip()
+        password = request.form.get('user_password')
+        password2 = request.form.get('user_password2')
+
+        if password != password2:
+            error_message = "Passwords don't match!"
+            return render_template("change_user.html", error_message=error_message)
+
+        if len(password) < 8:
+            error_message = "Password must be at least 8 characters"
+            return render_template("change_user.html", error_message=error_message)
+
+        hashed_password = bcrypt.generate_password_hash(password)
+
+        con = connect_database(DATABASE)
+
+        if con:
+            cur = con.cursor()
+            cur.execute("SELECT * FROM user WHERE email = ?", (email,))
+            existing_email = cur.fetchone()
+            if existing_email:
+                error_message = "Email already exists"
+                return render_template("sign.html", error_message=error_message)
+            cur.execute("SELECT * FROM user WHERE username = ?", (username,))
+            existing_username = cur.fetchone()
+
+            if existing_username:
+                error_message = "Username already taken"
+                return render_template("sign.html", error_message=error_message)
+
+            # Update user info
+            update_query = "UPDATE user SET username = ?, email = ?, password = ? WHERE user_id = ?"
+            cur.execute(update_query, (username, email, hashed_password, user_id))
+            con.commit()
+            con.close()
+
+            session['email'] = email
+            session['username'] = username
+
+
+    return render_template("change_user.html", logged_in=True)
+
+
+
+
+
+
