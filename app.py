@@ -158,11 +158,11 @@ def render_show_post_page():
     try:
         con = connect_database(DATABASE)
         cur = con.cursor()
-        query = "SELECT post.title, post.image, post.description, post.session_id, user.username FROM post JOIN user ON post.session_id = user.user_id"
+        query = "SELECT post.title, post.image, post.description, post.session_id, user.username, post.rating FROM post JOIN user ON post.session_id = user.user_id"
         cur.execute(query)
         posts = cur.fetchall()  # Get all rows
         con.close()
-        print(posts)
+
 
 
     except Exception as e:
@@ -182,9 +182,10 @@ def render_post_page():
         title = request.form.get('title').strip()
         description = request.form.get('description').strip()
         image = request.files.get('image')
+        rating = request.form.get('rating').strip()
 
         session_id = session.get('user_id')
-        name = session.get('first_name')
+        name = session.get('username')
 
         # Process image if one was uploaded
         if image and image.filename:
@@ -200,11 +201,12 @@ def render_post_page():
                 if con:
                     cur = con.cursor()
                     cur.execute(
-                        "INSERT INTO post (title, description, image, session_id, name) VALUES (?, ?, ?, ?, ?)",
-                        (title, description, image_path, session_id, name)
+                        "INSERT INTO post (title, description, image, session_id, name, rating) VALUES (?, ?, ?, ?, ?, ?)",
+                        (title, description, image_path, session_id, name, rating)
                     )
                     con.commit()
                     con.close()
+                    
                     return redirect("/post")
             except Error as e:
                 print(f"Error uploading file: {e}")
@@ -248,3 +250,18 @@ def delete_post():
         return redirect('/show_post')
     except Exception as e:
         return f"An error occurred while deleting: {e}", 500
+
+
+@app.route('/search', methods=['GET', 'POST'])
+def render_search_page():
+    look_up = request.form['Search']
+    title = "Search for: '" + look_up + "' "
+    look_up = "%" + look_up + "%"
+
+    query = "SELECT title, description, rating, name FROM post WHERE name LIKE ?"
+    con = connect_database(DATABASE)
+    cursor = con.cursor()
+    cursor.execute(query, (look_up,))
+    data_list = cursor.fetchall()
+    con.close()
+    return render_template('', data=data_list, table_type=title)
