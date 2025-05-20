@@ -252,16 +252,16 @@ def delete_post():
         return f"An error occurred while deleting: {e}", 500
 
 
-@app.route('/search', methods=['GET', 'POST'])
+@app.route('/search_post', methods=['GET', 'POST'])
 def render_search_page():
     look_up = request.form['Search']
-    title = "Search for: '" + look_up + "' "
+    search_title = "Search for: '" + look_up + "' "
     look_up = "%" + look_up + "%"
 
-    query = "SELECT title, description, rating, name FROM post WHERE name LIKE ?"
+    query = "SELECT post.title, post.image, post.description, post.name, post.rating FROM post WHERE post.name LIKE ?"
     con = connect_database(DATABASE)
     cursor = con.cursor()
     cursor.execute(query, (look_up,))
     data_list = cursor.fetchall()
     con.close()
-    return render_template('', data=data_list, table_type=title)
+    return render_template('search_post', posts=data_list, search_title=search_title, logged_in=True)

@@ -5,7 +5,18 @@
 {% block main %}
 
 
+    <form action="/search_post" method="POST">
+    <input type="text" name="Search" placeholder="Search by username" required>
+    <button type="submit">Search</button>
+</form>
 
+
+
+
+
+    {% if search_title %}
+    <h2>{{ search_title }}</h2>
+{% endif %}
 
 
     <div class="products">
