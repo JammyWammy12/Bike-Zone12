@@ -16,6 +16,9 @@
 
 
 
+
+
+
     {% if search_title %}
     <h2>{{ search_title }}</h2>
 {% endif %}
@@ -26,9 +29,9 @@
             {% for post in posts %}
                 <div class="product-box">
                     <h2>{{ post[0] }}</h2>
-                    <p>Posted by: {{ post[4] }}</p>
-                    <img src="static/images/{{ post[1] }}" alt="{{ post[0] }}">
-                    <p>{{ post[5]}}⭐ </p>
+                    <p>Posted by: {{ post[3] }}</p>
+                    <img src="static/images/{{ post[1] }}" alt="{{ post[1] }}">
+                    <p>{{ post[4]}}⭐ </p>
 
                     <div class="description-scroll">
                         <p class="description">{{ post[2] }}</p>

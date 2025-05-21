@@ -8,7 +8,7 @@ import os
 app = Flask(__name__)
 app.secret_key = 'super secret key'  # Used for encryption
 
-DATABASE = 'project1'
+DATABASE = 'database5'
 bcrypt = Bcrypt(app)  # Used to hash and check passwords
 UPLOAD_FOLDER = 'static/images'  # Uploading images file path
 
@@ -28,7 +28,9 @@ def is_logged_in():
 # Creates a connection to the SQLite database
 def connect_database(db_file):
     try:
+
         con = sqlite3.connect(db_file)
+
 
         print("Database connected successfully")
         return con
@@ -154,18 +156,24 @@ def render_show_post_page():
     try:
         con = connect_database(DATABASE)
         cur = con.cursor()
-        query = "SELECT post.title, post.image, post.description, post.session_id, user.username, post.rating FROM post JOIN user ON post.session_id = user.user_id"
+
+        # Updated query that properly joins all tables
+        query = """SELECT type_bike.title, type_bike.image, post.description, 
+                   user.username, post.rating, post.session_id, type_bike.bike_id
+                   FROM post
+                   JOIN user ON post.session_id = user.user_id
+                   JOIN type_bike ON post.bike_id = type_bike.bike_id
+                   ORDER BY type_bike.bike_id DESC"""
+
         cur.execute(query)
-        posts = cur.fetchall()  # Get all rows
+        posts = cur.fetchall()
         con.close()
 
     except Exception as e:
-        return f"An error occurred: {e}", 500  # Handle any database errors
+        return f"An error occurred: {e}", 500
 
     return render_template('show_post.html', logged_in=True, posts=posts)
 
-
-# Check if the extension is in our allowed list
 
 @app.route('/post', methods=['POST', 'GET'])
 def render_post_page():
@@ -177,31 +185,35 @@ def render_post_page():
         description = request.form.get('description').strip()
         image = request.files.get('image')
         rating = request.form.get('rating').strip()
-
         session_id = session.get('user_id')
-        name = session.get('username')
 
-        # Process image if one was uploaded
         if image and image.filename:
             try:
-                # Secure the filename and prepare upload path
-                filename = secure_filename(image.filename)  # Create unique filename
+                filename = secure_filename(image.filename)
                 upload_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-
-                # Save file
                 image.save(upload_path)
-                image_path = f"{filename}"  # Store image title in database
+                image_path = f"{filename}"
+
                 con = connect_database(DATABASE)
                 if con:
                     cur = con.cursor()
+
+                    # First insert bike details and get the bike_id
                     cur.execute(
-                        "INSERT INTO post (title, description, image, session_id, name, rating) VALUES (?, ?, ?, ?, ?, ?)",
-                        (title, description, image_path, session_id, name, rating)
+                        "INSERT INTO type_bike (title, image) VALUES (?, ?)",
+                        (title, image_path)
                     )
+
+
+                    # Then insert post with reference to the bike
+                    cur.execute(
+                        "INSERT INTO post (description, session_id, rating, bike_id) VALUES (?, ?, ?, ?)",
+                        (description, session_id, rating, bike_id)
+                    )
+
                     con.commit()
                     con.close()
-
-                    return redirect("/post")
+                    return redirect("/show_post")
             except Error as e:
                 print(f"Error uploading file: {e}")
                 return redirect("/post?error=upload+failed")
@@ -228,15 +240,17 @@ def delete_post():
         con = connect_database(DATABASE)
         cur = con.cursor()
 
-        query = "SELECT * FROM post WHERE title = ? AND session_id = ?"
-        cur.execute(query, (title, user_id))
+        # Fetch post to check existence
+        cur.execute("SELECT * FROM post WHERE session_id = ?", (user_id,))
+
 
         post = cur.fetchone()
 
         if post:
-            # Delete from database
-            query = "DELETE FROM post WHERE title = ? AND session_id = ?"
-            cur.execute(query, (title, user_id))
+            # Delete from post table
+            cur.execute("DELETE FROM post WHERE session_id = ?", (user_id,))
+            # Delete from type_bike table
+            cur.execute("DELETE FROM type_bike WHERE title = ?", (title,))
 
             con.commit()
             con.close()
@@ -246,19 +260,7 @@ def delete_post():
         return f"An error occurred while deleting: {e}", 500
 
 
-@app.route('/search_post', methods=['GET', 'POST'])
-def render_search_page():
-    look_up = request.form['Search']
-    search_title = "Search for: '" + look_up + "' "
-    look_up = "%" + look_up + "%"
 
-    query = "SELECT post.title, post.image, post.description, post.session_id, user.username, post.rating FROM post JOIN user ON post.session_id = user.user_id WHERE user.username LIKE ?"
-    con = connect_database(DATABASE)
-    cursor = con.cursor()
-    cursor.execute(query, (look_up,))
-    data_list = cursor.fetchall()
-    con.close()
-    return render_template('show_post.html', posts=data_list, search_title=search_title, logged_in=True)
 
 
 @app.route('/change_user', methods=['GET', 'POST'])
@@ -310,9 +312,3 @@ def change_user():
 
 
     return render_template("change_user.html", logged_in=True)
-
-
-
-
-
-
