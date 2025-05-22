@@ -8,18 +8,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css"/>
     <link href="{{ url_for('static', filename='smile.css') }}" rel="stylesheet">
-
 </head>
 
 <body>
 <nav>
 
-
     <div class="container">
 
-
         <div class="logo">
-        <img class = "center" src="static/server_files/logo1.png" width="200" height="60" alt="Header graphic">
+            <a href="/">
+                <img class = "center" src="static/server_files/logo1.png" width="200" height="60" alt="Header graphic">
+            </a>
+
         </div>
 
         <div class="sign-login">
@@ -36,23 +36,12 @@
 
         <div class="navbar-links">
             <a href="/">Home</a>
-
-
             <a href="/post">Make Post</a>
-
-
             <a href="/show_post">Post</a>
 
-
-
-
-
         </div>
-
-
     </div>
 </nav>
-
 
     <main>
         {% block main %}

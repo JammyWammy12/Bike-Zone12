@@ -1,68 +1,61 @@
 {% extends "base.html" %}
 
-
-
 {% block main %}
 <html>
     <body>
         <h1>{% block pageheading %}Make Post{% endblock %}</h1>
     </body>
-
 </html>
 
 
-
-
+<form class = "myform" method="post" enctype="multipart/form-data">
+    <div class = "form-group">
+        <div class = "form-element"> Bike model: </div>
+            <div class = "form-element"> <input type = "text" name = "model" required> </div>
     </div>
 
+    <div class = "form-group">
+        <div class = "form-element"> Brand: </div>
+        <div class = "form-element"> <input type = "text" name = "brand" required> </div>
     </div>
-    <div class="">
-        <form class = "myform" method="post" enctype="multipart/form-data">
-        <div class = "form-group">
-            <div class = "form-element"> Bike Name: </div>
-            <div class = "form-element"> <input type = "text" name = "title" required> </div>
-        </div>
 
-        <div class = "form-group">
-            <div class = "form-element"> Image: </div>
-            <div class = "form-element"> <input type = "file" name = "image" required> </div>
-
-            </div>
-
-        <div class = "form-group">
-            <div class = "form-element"> Stars: </div>
-             <div class = "form-element">
-             <select name="rating" required>
-                        <option value="">Select stars</option>
-                        <option value="1">⭐</option>
-                        <option value="2">⭐⭐</option>
-                        <option value="3">⭐⭐⭐</option>
-                        <option value="4">⭐⭐⭐⭐</option>
-                        <option value="5">⭐⭐⭐⭐⭐</option>
-                    </select>
-             </div>
-
-
-
-
-
-
-        <div class = "form-group">
-            <div class = "form-element"> Description: </div>
-            <div class = "form-element">
-                <textarea name="description" rows="5" cols="40" required></textarea>
-
-            </div>
-
-        </div>
-
-        <div class = "form-group">
-            <div class = "form-label"> </div>
-            <div class = "form-element"> <input type = "submit" value="Submit"> </div>
-        </div>
-    </form>
-
+    <div class = "form-group">
+        <div class = "form-element"> Image of bike: </div>
+        <div class = "form-element"> <input type = "file" name = "image" required> </div>
     </div>
+
+
+
+
+        <div class="form-group">
+        <div class="form-element">How many stars?:</div>
+        <div class="form-element">
+            <select name="rating" required>
+                <option value="">Select stars</option>
+                <option value="1">⭐</option>
+                <option value="2">⭐⭐</option>
+                <option value="3">⭐⭐⭐</option>
+                <option value="4">⭐⭐⭐⭐</option>
+                <option value="5">⭐⭐⭐⭐⭐</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="form-element">Review:</div>
+        <div class="form-element">
+            <textarea name="description" rows="5" cols="40" required></textarea>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="form-label"></div>
+        <div class="form-element">
+            <input type="submit" value="Submit">
+        </div>
+    </div>
+</form>
+
 
     <br>
     <br>
