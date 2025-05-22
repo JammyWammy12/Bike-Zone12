@@ -13,12 +13,6 @@
 </form>
 
 
-
-
-
-
-
-
     {% if search_title %}
     <h2>{{ search_title }}</h2>
 {% endif %}
@@ -29,19 +23,23 @@
             {% for post in posts %}
                 <div class="product-box">
                     <h2>{{ post[0] }}</h2>
-                    <p>Posted by: {{ post[3] }}</p>
+                    <p>Posted by: {{ post[2] }}</p>
                     <img src="static/images/{{ post[1] }}" alt="{{ post[1] }}">
                     <p>{{ post[4]}}⭐ </p>
 
                     <div class="description-scroll">
-                        <p class="description">{{ post[2] }}</p>
+                        <p class="description">{{ post[3] }}</p>
                     </div>
 
-                    {% if session['user_id'] == post[3] %}
+                    {% if session['user_id'] == post[5] %}
                     <form action="/delete_post" method="POST">
-                        <input type="hidden" name="title" value="{{ post[0] }}">
+
+
+                        <input type="hidden" name="bike_id" value="{{ post[6] }}">
+
                         <button type="submit" class="delete-btn">Delete</button>
                     </form>
+
                 {% endif %}
 
                 </div>

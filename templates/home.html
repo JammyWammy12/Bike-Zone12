@@ -1,27 +1,19 @@
 {% extends "base.html" %}
 
-
-
 {% block main %}
-
-
-
-<background>
-
-
-
     <!-- Checks if a user is logged in -->
-     {% if user %}
-    <!-- Displays welcome message with user's first and last name -->
-    <h1>Welcome, {{ user[0] }} {{ user[1] }}!</h1>
-     <!-- If no user is logged in -->
+    {% if user %}
+        <div class="border">
+            <h1 style="color: #00a651;">Welcome, {{ user[0] }}!</h1>
+        </div>
     {% else %}
-    <!-- Shows login prompt -->
-        <h1><em>You need to login!</em></h1>
+        <!-- If no user is logged in -->
+        <div class="border">
+            <h1 style="color: #00a651;">You need to login!</h1>
+        </div>
     {% endif %}
 
-</background>
 
 
-
+    <div class="background"></div>
 {% endblock %}

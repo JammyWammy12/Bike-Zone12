@@ -153,21 +153,19 @@ def render_show_post_page():
     if not is_logged_in():
         return redirect('/login?error=please+log+in+first')
 
+
     try:
         con = connect_database(DATABASE)
         cur = con.cursor()
+        user_id = session.get('user_id')
 
-        # Updated query that properly joins all tables
-        query = """SELECT type_bike.title, type_bike.image, post.description, 
-                   user.username, post.rating, post.session_id, type_bike.bike_id
-                   FROM post
-                   JOIN user ON post.session_id = user.user_id
-                   JOIN type_bike ON post.bike_id = type_bike.bike_id
-                   ORDER BY type_bike.bike_id DESC"""
+        query = "SELECT type_bike.title, type_bike.image, user.username, post.description, post.rating, post.session_id, type_bike.bike_id FROM post JOIN user ON post.session_id = user.user_id JOIN type_bike ON post.bike_id = type_bike.bike_id ORDER BY post.bike_id DESC"
+        cur.execute(query, )
 
-        cur.execute(query)
         posts = cur.fetchall()
         con.close()
+
+        print(posts)
 
     except Exception as e:
         return f"An error occurred: {e}", 500
@@ -187,6 +185,7 @@ def render_post_page():
         rating = request.form.get('rating').strip()
         session_id = session.get('user_id')
 
+
         if image and image.filename:
             try:
                 filename = secure_filename(image.filename)
@@ -203,7 +202,7 @@ def render_post_page():
                         "INSERT INTO type_bike (title, image) VALUES (?, ?)",
                         (title, image_path)
                     )
-
+                    bike_id = cur.lastrowid
 
                     # Then insert post with reference to the bike
                     cur.execute(
@@ -233,7 +232,8 @@ def delete_post():
         return redirect('/login?error=please+log+in+first')
 
     title = request.form.get('title')
-    image = request.form.get('image')
+    bike_id = request.form.get('bike_id')
+
     user_id = session.get('user_id')
 
     try:
@@ -241,16 +241,16 @@ def delete_post():
         cur = con.cursor()
 
         # Fetch post to check existence
-        cur.execute("SELECT * FROM post WHERE session_id = ?", (user_id,))
+        cur.execute("SELECT * FROM post WHERE bike_id = ? AND session_id = ?", (bike_id, user_id,))
 
 
         post = cur.fetchone()
 
         if post:
             # Delete from post table
-            cur.execute("DELETE FROM post WHERE session_id = ?", (user_id,))
+            cur.execute("DELETE FROM post WHERE bike_id = ? AND session_id = ?", (bike_id, user_id,))
             # Delete from type_bike table
-            cur.execute("DELETE FROM type_bike WHERE title = ?", (title,))
+            cur.execute("DELETE FROM type_bike WHERE bike_id = ?", (bike_id,))
 
             con.commit()
             con.close()
@@ -310,5 +310,19 @@ def change_user():
             session['email'] = email
             session['username'] = username
 
-
     return render_template("change_user.html", logged_in=True)
+
+
+@app.route('/search_post', methods=['GET', 'POST'])
+def render_search_page():
+    look_up = request.form['Search']
+    search_title = "Search for: '" + look_up + "' "
+    look_up = "%" + look_up + "%"
+
+    query = "SELECT type_bike.title, type_bike.image, post.description, post.session_id, user.username, post.rating FROM post JOIN user ON post.session_id = user.user_id JOIN type_bike on post.bike_id = type_bike.bike_id WHERE user.username LIKE ?"
+    con = connect_database(DATABASE)
+    cursor = con.cursor()
+    cursor.execute(query, (look_up,))
+    data_list = cursor.fetchall()
+    con.close()
+    return render_template('show_post.html', posts=data_list, search_title=search_title, logged_in=True)

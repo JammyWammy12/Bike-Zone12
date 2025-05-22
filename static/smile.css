@@ -6,35 +6,49 @@
     }
 
     .logo {
-      position: fixed;
+        position: absolute;
       top: 5px;
       left: 20px;
 
+
     }
 
-
+.background {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height:550px;
+    background-image: url("/static/server_files/forset.jpg");
+    background-size: cover;
+    background-position: center;
+    z-index: -1; /* optional: to place it behind content */
+}
     body {
+        background: #ffffff;
 
-      background-color: #a8a5a5;
 
     }
 
 
+        .products {
+
+                grid-template-columns: repeat(3, 1fr);
+                grid-gap: 3rem;
+                gap: 1rem;
 
 
-
-    .products {
-
-            grid-template-columns: repeat(3, 1fr);
-            grid-gap: 1rem;
-
-        }
+            }
 
         .product-box {
+            height: 450px;
             border: 1px solid #eee;
             padding: 20px;
             background: white;
             border-radius: 10px; /* Rounded corners */
+            display: flex;
+
+            flex-direction: column;
         }
 
         .product-box img {
@@ -113,6 +127,18 @@
     }
 
 
+ .border{
+    padding-top: 0.4rem;
+    padding-bottom: 0.7rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border: 5px solid #00a651;
+    background-color: #070606;
+
+
+    display: block;
+}
+
     .sign-login {
         float: right;
 
@@ -123,6 +149,7 @@
     }
 
     .navbar-links {
+        text-align: center;
 
         margin-left: auto;
         float: right;
@@ -253,8 +280,6 @@
     }
 
 
-
-
     .sign-up {
         text-align: center;
 
@@ -278,19 +303,6 @@
         border-collapse: collapse;
     }
 
-    .cart-table > thead {
-        font-weight: bold;
-    }
-
-    .cart-table td {
-        padding: 0.2rem 1rem;
-        text-align: center;
-        border: 1px solid #ddd;
-    }
-
-    .cart-total {
-        font-weight: bold;
-    }
 
 
     @media only screen and (max-width: 600px) {
